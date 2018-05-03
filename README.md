@@ -29,28 +29,35 @@ I've successfully installed using apt-get and homebrew.
 
 ## Syntax
 
-Comments are enclosed in `(* *)`
-let : introduces a new identifier
-let rec : introduces a recursive function
-type my_type = {a: int; b: int} :
-    A record type declaration, fields are named.
-    # Create a my_type
-    let foo = {a=5; b=10};;
-    # Now apply the so called 'functional update'.  Actually creates a new value here with b replaced.
-    {foo with b = 999}
+- Comments are enclosed in `(* *)`
+- `let` : introduces a new identifier
+- `let rec` : introduces a recursive function
 
-`<-` : is used to set mutable record fields OR set a cell in an array
+```ocaml
+type my_type = {a: int; b: int} :
+(* A record type declaration, fields are named. *)
+(* Create a my_type *)
+let foo = {a=5; b=10};;
+(* Now apply the so called 'functional update'.  Actually creates a new value here with b replaced. *)
+{foo with b = 999}
+
+(* `<-` : is used to set mutable record fields OR set a cell in an array 
     For example:
-        let my_array = Array.make 5 0;;
-        my_array.(0) <- 999;;
+*)
+let my_array = Array.make 5 0;;
+my_array.(0) <- 999;;
+(*
     Sets the 0th element of my_array to 999
+*)
+```
     
-Refs:
+#### Refs:
     A ref is a mutable variable.  Refs are dereferenced with the bang (!) operator and assigned using the := operator.
     Example from interactive session:
+```ocaml
         let my_ref = ref 0;;                                                   
         val my_ref : int ref = {contents = 0}                          
         my_ref := 999;;                                                        
         !my_ref;;                                                               
         int = 999
-
+```
