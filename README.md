@@ -1,7 +1,7 @@
 Order Book Programming Problem in OCaml
 =======================================
 
-This code is quite old but now, keeping around for posterity.
+This code is quite old by now, keeping around for posterity.
 
 Project Layout
 ================
