@@ -1,0 +1,8 @@
+*.cmx
+*.cmo
+*.cmi
+*.o
+pricer.in
+*pricer.out.*
+*.gz
+pricer

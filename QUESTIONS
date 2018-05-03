@@ -1,0 +1,39 @@
+# Answers to Order Book Programming Problem questions
+
+1. How did you choose your implementation language?
+I chose OCaml for its expressivity and the ease with which you can create fast, native, managed executables while producing code that can quickly be verified as correct.
+
+2. What is the time complexity for processing an Add Order message?
+The problem's ideal solution varies with the input size, target size and price variability, and I have submitted answers to account for this: an array-based solution (ordergrid in the src directory) for smaller target sizes and a tree-based (ordermap in the experiments/ordermap directory) implementation for larger sizes .  
+The array solution is O(max(target_size, worst_price - best_price)) in the worst case.
+The tree solution is O(max(target_size, N)) where N is the number of unique orders received.
+When no transaction is possible and we don't need to call compute_txn then ordergrid is O(1) and ordermap is O(log N).
+
+3. What is the time complexity for processing a Reduce Order message?
+Reduce order messages have the same time complexity as Add Order messages since the worst case behavior for both scenarios is when a new transaction must be computed and we iterate over the price_to_size data structure.  The pathological scenario is when each price point has only 1 share available.
+
+4. If your implementation were put into production and found to be too slow, what ideas would you try out to improve its performance? (Other than reimplementing it in a different language such as C or C++.)
+The first places a proper analysis should look are parallelization of easy tasks, IO, and memory management.  To that end, I would investigate:
+ - Separate the processing of bids and asks and run them in parallel.
+ - Choose Ordergrid or Ordermap as appropriate:
+    - First: analyze historical data for the instrument we're trading to determine if a tree or array-based implementation would perform best.
+      The array implementation will tend to do better when the following are true:
+       - target size is small
+       - order sizes are large
+       - price variance is small, that is, when shares are available at every price point.
+       The compute_txn loop starts at the best price and hits every price point until it has accumulated target size shares.
+       So if the book is sparse with large gaps between populated price points, the tree-implementation becomes a more attractive option.
+    - Given the provided input data, Ordergrid performs best for target sizes < 4000.  For targets > 4000 Ordermap begins to perform better (see grid_vs_map.png and tools/summary_stats.R)
+ - IO:
+    - switch to a length-prefixed binary protocol (example in experiments/binary/encode.py)
+      - This would cut down on time spent reading and parsing substantially.  The example cuts the size of the input file by 33%
+    - Store data in an fully-typed in-memory data store instead of a text file if possible
+    - Failing that I'd consider using mmap if we can read the file directly instead of within a shell pipeline
+    - Read data in large chunks instead of line-by-line
+ - Memory Management:
+    OCaml exposes GC tuning parameters via its [GC Module][http://caml.inria.fr/pub/docs/old-311/libref/Gc.html]
+    Again we'd begin with gprof and experiment with altering the defaults for minor_heap_size, major_heap_increment and max_overhead.
+    - Investigate string allocations:
+      - Reusing strings would cut down greatly on allocations.  The first step here is to do some more profiling 
+        with gprof to determine how much of a time penalty we're incurring during allocation and the 
+        subsequent garbage collection of these unreachable strings.
